@@ -11,11 +11,13 @@ local HPColor = Color3.fromRGB(0, 255, 0)
 local VehicleColor = Color3.fromRGB(0, 255, 255)
 local InventoryColor = Color3.fromRGB(255, 255, 0)
 local SkeletonColor = Color3.fromRGB(255, 0, 0)
+local DistanceColor = Color3.fromRGB(255, 165, 0) -- Новый цвет для дистанции (оранжевый по умолчанию)
 local ESPType = "Box3D"
 local ShowNames = true
 local ShowHP = true
 local ShowVehicle = true
 local ShowInventory = true
+local ShowDistance = false -- Новое значение для отображения дистанции
 local TeamCheck = true
 local ScaleWithDistance = true
 
@@ -66,6 +68,7 @@ local function CreateESP(player)
         billboard.Size = UDim2.new(0, 200 * scaleFactor, 0, 100 * scaleFactor)
     end
 
+    -- Name Label
     if ShowNames then
         local nameLabel = billboard:FindFirstChild("NameLabel")
         if not nameLabel then
@@ -83,6 +86,7 @@ local function CreateESP(player)
         nameLabel.TextColor3 = NameColor
     end
 
+    -- HP Label
     if ShowHP then
         local hpLabel = billboard:FindFirstChild("HPLabel")
         if not hpLabel then
@@ -100,6 +104,7 @@ local function CreateESP(player)
         hpLabel.TextColor3 = HPColor
     end
 
+    -- Vehicle Label
     if ShowVehicle and humanoid.SeatPart then
         local vehicleLabel = billboard:FindFirstChild("VehicleLabel")
         if not vehicleLabel then
@@ -117,6 +122,7 @@ local function CreateESP(player)
         vehicleLabel.TextColor3 = VehicleColor
     end
 
+    -- Inventory Label
     if ShowInventory then
         local tool = character:FindFirstChildOfClass("Tool")
         if tool then
@@ -137,6 +143,25 @@ local function CreateESP(player)
         end
     end
 
+    -- Distance Label (новое)
+    if ShowDistance then
+        local distanceLabel = billboard:FindFirstChild("DistanceLabel")
+        if not distanceLabel then
+            distanceLabel = Instance.new("TextLabel")
+            distanceLabel.Name = "DistanceLabel"
+            distanceLabel.Parent = billboard
+            distanceLabel.Size = UDim2.new(1, 0, 0.25, 0)
+            distanceLabel.Position = UDim2.new(0, 0, ShowInventory and 1 or 0.75, 0) -- Сдвиг вниз, если есть инвентарь
+            distanceLabel.BackgroundTransparency = 1
+            distanceLabel.TextScaled = true
+            distanceLabel.TextStrokeTransparency = 0
+            distanceLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        end
+        distanceLabel.Text = StudsToMeters(distance) .. " m"
+        distanceLabel.TextColor3 = DistanceColor
+    end
+
+    -- ESP Types
     if ESPType == "Box3D" then
         local box = character:FindFirstChild("ESPBox")
         if not box then
@@ -316,5 +341,19 @@ return {
     SetShowVehicle = function(value) ShowVehicle = value end,
     SetShowInventory = function(value) ShowInventory = value end,
     SetTeamCheck = function(value) TeamCheck = value end,
-    SetScaleWithDistance = function(value) ScaleWithDistance = value end
+    SetScaleWithDistance = function(value) ScaleWithDistance = value end,
+    -- Новые функции для дистанции
+    SetShowDistance = function(value) ShowDistance = value end,
+    SetDistanceColor = function(value)
+        DistanceColor = value
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character then
+                local billboard = player.Character:FindFirstChild("ESPBillboard")
+                if billboard then
+                    local distanceLabel = billboard:FindFirstChild("DistanceLabel")
+                    if distanceLabel then distanceLabel.TextColor3 = value end
+                end
+            end
+        end
+    end
 }
